@@ -2,17 +2,18 @@
 Class-based SystemVerilog verification environment for synchronous single-port RAM using constrained-random stimulus, mailbox communication, scoreboard, reference model, and functional coverage.
 
 ## Repository contents
-- `rtl/single_port_ram.sv` - synchronous single-port RAM DUT
-- `tb/ram_verif_pkg.sv` - reusable verification components:
-  - Transaction
-  - Generator
-  - Driver
-  - Monitor
-  - Reference Model
-  - Scoreboard
-  - Functional Coverage Collector
-  - Environment wrapper
-- `tb/tb_single_port_ram.sv` - top-level testbench and interface wiring
+- `design.sv` - synchronous single-port RAM DUT
+- `interface.sv` - RAM virtual interface
+- `transaction.sv` - transaction class
+- `generator.sv` - stimulus generator
+- `driver.sv` - DUT driver
+- `monitor.sv` - DUT monitor
+- `reference_model.sv` - expected-data model
+- `scoreboard.sv` - self-checking comparator
+- `coverage.sv` - functional coverage collector
+- `environment.sv` - environment assembly
+- `test.sv` - test control class
+- `testbench.sv` - top-level testbench
 
 ## Test modes
 - **Constrained-random (default):** random read/write transactions with mailbox-based communication.
@@ -22,7 +23,7 @@ Both modes are self-checking via scoreboard + reference model and print function
 
 ## Example simulation (Icarus Verilog)
 ```sh
-iverilog -g2012 -o simv rtl/single_port_ram.sv tb/tb_single_port_ram.sv
+iverilog -g2012 -o simv design.sv testbench.sv
 vvp simv
 vvp simv +DIRECTED
 vvp simv +NUM_TXNS=200
