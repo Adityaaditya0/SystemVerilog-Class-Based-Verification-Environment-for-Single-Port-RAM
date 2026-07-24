@@ -1,43 +1,39 @@
 class monitor;
-
-    transaction tr;
-
-  mailbox  mb1;
-  mailbox mb2;
-  mailbox mb3;
   virtual ram_if vif;
-  function new(mailbox mb1,mailbox mb2,mailbox mb3,virtual ram_if vif);
-    this.vif=vif;
-    this.mb1=mb1;
-    this.mb2=mb2;
-    this.mb3=mb3;
+  mailbox #(ram_txn) mon2rm;
+  mailbox #(ram_txn) mon2scb;
+  mailbox #(ram_txn) mon2cov;
+  int unsigned num_txns;
+
+  function new(
+    virtual ram_if vif,
+    mailbox #(ram_txn) mon2rm,
+    mailbox #(ram_txn) mon2scb,
+    mailbox #(ram_txn) mon2cov,
+    int unsigned num_txns
+  );
+    this.vif      = vif;
+    this.mon2rm   = mon2rm;
+    this.mon2scb  = mon2scb;
+    this.mon2cov  = mon2cov;
+    this.num_txns = num_txns;
   endfunction
-  task sample();
-begin
-      @(posedge vif.clk);
-  #1;
 
-  if(vif.enable==1'b1) begin
-          tr = new();
-
-          tr.wr_en   = vif.wr_en;
-          tr.address = vif.address;
-          tr.data_in = vif.data_in;
-          tr.enable  = vif.enable;
-          tr.data_out= vif.data_out;
-
-          tr.display("monitor");
-
-          mb1.put(tr);
-          mb2.put(tr);
-          mb3.put(tr);
-      end
-end
-endtask
   task run();
-    begin
-      forever begin
-      sample();
+    ram_txn tx;
+    repeat (num_txns) begin
+      @(posedge vif.clk);
+      if (vif.en) begin
+        tx       = new();
+        tx.en    = vif.en;
+        tx.we    = vif.we;
+        tx.addr  = vif.addr;
+        tx.wdata = vif.wdata;
+        @(negedge vif.clk);
+        tx.rdata = vif.rdata;
+        mon2rm.put(tx.clone());
+        mon2scb.put(tx.clone());
+        mon2cov.put(tx.clone());
       end
     end
   endtask

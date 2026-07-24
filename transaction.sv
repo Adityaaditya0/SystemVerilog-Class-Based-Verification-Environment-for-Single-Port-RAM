@@ -1,35 +1,21 @@
+class ram_txn;
+  rand bit                  en;
+  rand bit                  we;
+  rand bit [3:0]            addr;
+  rand bit [7:0]            wdata;
+       bit [7:0]            rdata;
+       bit [7:0]            exp_rdata;
 
-class transaction;
-  rand bit        enable;
-  rand bit        wr_en;
-  rand bit [3:0]  address;
-  rand bit [7:0] data_in;
-  bit  [7:0]     data_out;
+  constraint c_valid { en == 1'b1; }
 
-// ---------------------------------------------------------------------------
-// Constraints
-// ---------------------------------------------------------------------------
-
-// 'enable' should be 1 with 90% probability
-constraint enable_c {
-  enable dist {1 := 90, 0 := 10};
-}
-
-// 'we' should be 1 with 50% probability
-constraint we_c {
-  wr_en dist {1 := 50, 0 := 50};
-}
-  constraint add_rc{
-    address<4'd10;
-  }
-// ---------------------------------------------------------------------------
-// Utility Functions
-// ---------------------------------------------------------------------------
-
-// Function to print the transaction contents
-function void display(string name);
-  $display("[%s] enable=%0b we=%0b addr=%0d wdata=%0h rdata=%0h",
-            name, enable, wr_en, address, data_in, data_out);
-endfunction
-  
+  function ram_txn clone();
+    ram_txn c = new();
+    c.en        = en;
+    c.we        = we;
+    c.addr      = addr;
+    c.wdata     = wdata;
+    c.rdata     = rdata;
+    c.exp_rdata = exp_rdata;
+    return c;
+  endfunction
 endclass

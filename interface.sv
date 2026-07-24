@@ -1,12 +1,12 @@
-interface ram_if(input bit clk);
-
-    logic rst;
-    logic enable;
-    logic wr_en;
-    logic [3:0] address;
-    logic [7:0] data_in;
-    logic [7:0] data_out;
-
- 
-
+interface ram_if #(
+  parameter int ADDR_WIDTH = 4,
+  parameter int DATA_WIDTH = 8
+);
+  logic                  clk;
+  logic                  rst_n;
+  logic                  en;
+  logic                  we;
+  logic [ADDR_WIDTH-1:0] addr;
+  logic [DATA_WIDTH-1:0] wdata;
+  logic [DATA_WIDTH-1:0] rdata;
 endinterface

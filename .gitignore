@@ -1,0 +1,9 @@
+*.vcd
+*.vvp
+simv
+*.log
+*.out
+*.jou
+*.pb
+work/
+transcript

@@ -1,77 +1,33 @@
 class generator;
+  mailbox #(ram_txn) gen2drv;
+  int unsigned num_txns;
+  bit directed_mode;
 
-    // Transaction Handle
-    transaction tr;
+  function new(mailbox #(ram_txn) gen2drv, int unsigned num_txns, bit directed_mode);
+    this.gen2drv       = gen2drv;
+    this.num_txns      = num_txns;
+    this.directed_mode = directed_mode;
+  endfunction
 
-    // Mailbox Handle
-    mailbox mb;
-
-    // Number of Transactions
-    int count;
-
-    // Constructor
-    function new(mailbox mb);
-        this.mb = mb;
-    endfunction
-
-    // Main Task
-    task run();
-
-        //==========================================================
-        // RANDOM TRANSACTIONS
-        //==========================================================
-
-        repeat(count) begin
-
-            tr = new();
-
-            if(!tr.randomize())
-                $display("[GENERATOR] Randomization Failed");
-
-            tr.display("GENERATOR");
-
-            mb.put(tr);
-
+  task run();
+    ram_txn tx;
+    if (directed_mode) begin
+      tx = new(); tx.en = 1'b1; tx.we = 1'b1; tx.addr = 4'h0; tx.wdata = 8'hA5; gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b1; tx.addr = 4'h1; tx.wdata = 8'h3C; gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b1; tx.addr = 4'h2; tx.wdata = 8'hF0; gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b1; tx.addr = 4'h3; tx.wdata = 8'h55; gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b0; tx.addr = 4'h0; tx.wdata = '0;    gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b0; tx.addr = 4'h1; tx.wdata = '0;    gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b0; tx.addr = 4'h2; tx.wdata = '0;    gen2drv.put(tx);
+      tx = new(); tx.en = 1'b1; tx.we = 1'b0; tx.addr = 4'h3; tx.wdata = '0;    gen2drv.put(tx);
+    end else begin
+      repeat (num_txns) begin
+        tx = new();
+        if (!tx.randomize()) begin
+          $fatal(1, "Generator randomization failed");
         end
-
-
-        //==========================================================
-        // DIRECTED WRITE TRANSACTION
-        // Uncomment if required
-        //==========================================================
-
-        /*
-        tr = new();
-
-        tr.enable  = 1;
-        tr.wr_en   = 1;
-        tr.address = 3;
-        tr.data_in = 8'hAA;
-
-        tr.display("GENERATOR");
-
-        mb.put(tr);
-        */
-
-
-        //==========================================================
-        // DIRECTED READ TRANSACTION
-        // Uncomment if required
-        //==========================================================
-
-        /*
-        tr = new();
-
-        tr.enable  = 1;
-        tr.wr_en   = 0;
-        tr.address = 3;
-        tr.data_in = 8'h00;
-
-        tr.display("GENERATOR");
-
-        mb.put(tr);
-        */
-
-    endtask
-
+        gen2drv.put(tx);
+      end
+    end
+  endtask
 endclass

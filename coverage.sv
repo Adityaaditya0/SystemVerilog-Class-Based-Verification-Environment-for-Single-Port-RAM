@@ -1,43 +1,27 @@
-class coverage;
+class coverage_collector;
+  mailbox #(ram_txn) mon2cov;
+  int unsigned num_txns;
+  ram_txn sample_txn;
 
-    // Transaction Handle
-    transaction tr;
+  covergroup ram_cg;
+    option.per_instance = 1;
+    cp_we        : coverpoint sample_txn.we;
+    cp_addr      : coverpoint sample_txn.addr;
+    cp_data      : coverpoint sample_txn.wdata;
+    cp_we_x_addr : cross cp_we, cp_addr;
+  endgroup
 
-    // Mailbox
-    mailbox mb;
+  function new(mailbox #(ram_txn) mon2cov, int unsigned num_txns);
+    this.mon2cov  = mon2cov;
+    this.num_txns = num_txns;
+    ram_cg = new();
+  endfunction
 
-    // Covergroup
-    covergroup ram_cg;
-
-        // Coverpoints
-      cp_enable:coverpoint tr.enable;
-      cp_wr_en:coverpoint tr.wr_en;
-      cp_addr: coverpoint tr.address{
-        bins addr[]={[0:9]};
-      }
-      cp_rw:cross cp_enable ,cp_wr_en;
-    endgroup
-      
-
-
-    // Constructor
-    function new(mailbox mb);
-      this.mb=mb;
-      ram_cg=new();
-    endfunction
-
-
-    // Run Task
-    task run();
-
-        forever begin
-          mb.get(tr);
-       $display("[COVERAGE] Sampled addr=%0d", tr.address);
-
-          ram_cg.sample();
-
-        end
-
-    endtask
-
+  task run();
+    repeat (num_txns) begin
+      mon2cov.get(sample_txn);
+      ram_cg.sample();
+    end
+    $display("Functional coverage: %0.2f%%", ram_cg.get_coverage());
+  endtask
 endclass
